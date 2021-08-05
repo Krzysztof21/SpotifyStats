@@ -1,0 +1,9 @@
+{% if longest_streams_list %}
+    <ul>
+    {% for stream in longest_streams_list %}
+        <li><a href="/spotify_stats/{{ stream.id }}/">{{ stream.ms_played }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No streams are uploaded.</p>
+{% endif %}
