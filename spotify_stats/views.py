@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from django.http import HttpResponse, Http404
 from django.template import loader
@@ -15,10 +15,7 @@ def index(request):
 
 
 def detail(request, stream_id):
-    try:
-        stream = Stream.objects.get(pk=stream_id)
-    except Stream.DoesNotExist:
-        raise Http404('Stream does not exist')
+    stream = get_object_or_404(Stream, pk=stream_id)
     return render(request, 'spotify_stats/detail.html', {'stream': stream})
 
 
