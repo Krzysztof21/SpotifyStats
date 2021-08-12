@@ -1,6 +1,8 @@
-<h1>{{ stream.id }}</h1>
+<h1>{{ track.track_name }}</h1>
 <ul>
+    <li>Artist: {{ track.artist_name }}</li>
+    <li>Album: {{ track.album_name }}</li>
     <li>End time: {{ stream.end_time }}</li>
     <li>Miliseconds played: {{ stream.ms_played }}</li>
-    <li>Track ID: {{ stream.track_id }}</li>
+    <li>Track ID: {{ track.id }}</li>
 </ul>
