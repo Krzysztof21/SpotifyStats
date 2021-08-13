@@ -2,11 +2,12 @@ import datetime as dt
 
 from django.shortcuts import render, get_object_or_404
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import loader
 from django.db.models import Count, Sum
 
 from .models import Stream, Track
+from .forms import DateForm
 
 
 def index(request):
@@ -33,21 +34,34 @@ def more_detail(request, track_id):
 def basic_stats(request, track_id):
     track = Track.objects.filter(id=track_id).first()
     # no of streams of this track total
-    total = Stream.objects.filter(track_id=track_id).aggregate(Count('id'))
+    total_streams = Stream.objects.filter(track_id=track_id).aggregate(Count('id'))
     # no of streams of this track last week
     today_tuple = dt.datetime.today().timetuple()
     today = f'{today_tuple[0]}-{today_tuple[1]}-{today_tuple[2]}'
     week_tuple = (dt.datetime.today() - dt.timedelta(days=7)).timetuple()
     week = f'{week_tuple[0]}-{week_tuple[1]}-{week_tuple[2]}'
-    last_week = Stream.objects.filter(track_id=track_id).filter(end_time__gte=week, end_time__lte=today).aggregate(Count('id'))
+    last_week_streams = Stream.objects.filter(track_id=track_id).filter(end_time__gte=week, end_time__lte=today).aggregate(Count('id'))
     # total time listened
-    time_listened = Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))
+    total_time_listened = Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))
     context = {
         'track': track,
-        'total': total['id__count'],
-        'time_listened': time_listened['ms_played__sum'],
-        'last_week': last_week['id__count']}
+        'total_streams': total_streams['id__count'],
+        'total_time_listened': total_time_listened['ms_played__sum'],
+        'last_week_streams': last_week_streams['id__count']}
     return render(request, 'spotify_stats/basic_stats.html', context)
 
+
+def pick_date(request):
+    if request.method == 'POST':
+        form = DateForm(request.POST)
+        if form.is_valid():
+            start = form.cleaned_data["start_date"]
+            end = form.cleaned_data["end_date"]
+            return HttpResponseRedirect(f'/most_listened?start_time={start}&end_time={end}')
+    else:
+        form = DateForm()
+    return render(request, 'spotify_stats/pick_date.html', {'form': form})
+
 # write a form view where you can enter time range
-# and on the next page youll get 5 most listened tracks
+# and on the next page you'll get 5 most listened tracks
+
