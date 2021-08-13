@@ -1,8 +1,10 @@
+import datetime as dt
+
 from django.shortcuts import render, get_object_or_404
 
 from django.http import HttpResponse, Http404
 from django.template import loader
-from django.db.models import Count
+from django.db.models import Count, Sum
 
 from .models import Stream, Track
 
@@ -33,8 +35,19 @@ def basic_stats(request, track_id):
     # no of streams of this track total
     total = Stream.objects.filter(track_id=track_id).aggregate(Count('id'))
     # no of streams of this track last week
+    today_tuple = dt.datetime.today().timetuple()
+    today = f'{today_tuple[0]}-{today_tuple[1]}-{today_tuple[2]}'
+    week_tuple = (dt.datetime.today() - dt.timedelta(days=7)).timetuple()
+    week = f'{week_tuple[0]}-{week_tuple[1]}-{week_tuple[2]}'
+    last_week = Stream.objects.filter(track_id=track_id).filter(end_time__gte=week, end_time__lte=today).aggregate(Count('id'))
     # total time listened
-    return render(request, 'spotify_stats/basic_stats.html', {'track': track, 'total': total})
+    time_listened = Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))
+    context = {
+        'track': track,
+        'total': total['id__count'],
+        'time_listened': time_listened['ms_played__sum'],
+        'last_week': last_week['id__count']}
+    return render(request, 'spotify_stats/basic_stats.html', context)
 
 # write a form view where you can enter time range
 # and on the next page youll get 5 most listened tracks
