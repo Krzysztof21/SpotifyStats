@@ -8,4 +8,5 @@ urlpatterns = [
     path('detail/<int:stream_id>/', views.detail, name='detail'),
     path('basic_stats/<int:track_id>/', views.basic_stats, name='basic_stats'),
     path('pick_date/', views.pick_date, name='pick_date'),
+    path('most_listened/', views.most_listened, name='most_listened'),
 ]

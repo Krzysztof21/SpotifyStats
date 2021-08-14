@@ -8,6 +8,7 @@ from django.db.models import Count, Sum
 
 from .models import Stream, Track
 from .forms import DateForm
+from .utils import convert_millis
 
 
 def index(request):
@@ -42,11 +43,12 @@ def basic_stats(request, track_id):
     week = f'{week_tuple[0]}-{week_tuple[1]}-{week_tuple[2]}'
     last_week_streams = Stream.objects.filter(track_id=track_id).filter(end_time__gte=week, end_time__lte=today).aggregate(Count('id'))
     # total time listened
-    total_time_listened = Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))
+    time_tuple = convert_millis(Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))['ms_played__sum'])
+    total_time_listened = f'{time_tuple[0]}:{time_tuple[1]}:{time_tuple[2]}'
     context = {
         'track': track,
         'total_streams': total_streams['id__count'],
-        'total_time_listened': total_time_listened['ms_played__sum'],
+        'total_time_listened': total_time_listened,
         'last_week_streams': last_week_streams['id__count']}
     return render(request, 'spotify_stats/basic_stats.html', context)
 
@@ -57,11 +59,18 @@ def pick_date(request):
         if form.is_valid():
             start = form.cleaned_data["start_date"]
             end = form.cleaned_data["end_date"]
-            return HttpResponseRedirect(f'/most_listened?start_time={start}&end_time={end}')
+            return HttpResponseRedirect(f'/spotify_stats/most_listened?start_time={start}&end_time={end}')
     else:
         form = DateForm()
     return render(request, 'spotify_stats/pick_date.html', {'form': form})
 
+
+def most_listened(request):
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    # filter date range; group by and count ids; sort by count; output name, no of streams, and total time
+    last_week_streams = Stream.objects.filter(end_time__gte=week, end_time__lte=today)
+    return render(request, 'spotify_stats/most_listened.html', {'start_time': start_time, 'end_time': end_time})
+
 # write a form view where you can enter time range
 # and on the next page you'll get 5 most listened tracks
-
