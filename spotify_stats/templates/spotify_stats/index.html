@@ -1,7 +1,7 @@
 {% if longest_streams_list %}
     <ul>
     {% for stream in longest_streams_list %}
-        <li><a href={% url 'spotify_stats:detail' stream.id %}/">{{ stream.ms_played }}</a></li>
+        <li><a href={% url 'spotify_stats:detail' stream.id %}>{{ stream.ms_played }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
