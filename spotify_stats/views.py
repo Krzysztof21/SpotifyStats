@@ -31,7 +31,7 @@ def more_detail(request, track_id):
     response = "You're looking at the more details of track %s."
     return HttpResponse(response % track_id)
 
-# TODO: probably returns wrong data
+
 # TODO: refactor
 def basic_stats(request, track_id):
     track = Track.objects.filter(id=track_id).first()
@@ -54,30 +54,35 @@ def basic_stats(request, track_id):
     return render(request, 'spotify_stats/basic_stats.html', context)
 
 
-# TODO: add "include podcasts" checkbox
 def pick_date(request):
     if request.method == 'POST':
         form = DateForm(request.POST)
         if form.is_valid():
-            start = form.cleaned_data["start_date"]
-            end = form.cleaned_data["end_date"]
-            return HttpResponseRedirect(f'/spotify_stats/most_listened?start_time={start}&end_time={end}')
+            frmt = '%Y-%m-%d %H:%M'
+            start = form.cleaned_data["start_date"].strftime(frmt)
+            end = form.cleaned_data["end_date"].strftime(frmt)
+            include_podcasts = form.cleaned_data['include_podcasts']
+            print(type(include_podcasts))
+            return HttpResponseRedirect(f'/spotify_stats/most_listened?start_time={start}&end_time={end}&include_podcasts={include_podcasts}')
     else:
         form = DateForm()
     return render(request, 'spotify_stats/pick_date.html', {'form': form})
 
 
 # TODO: add logic to exclude podcasts
+# TODO: validate dates - no future and no reverse
 # TODO: refactor
 def most_listened(request):
-    start_time = request.GET.get('start_time')[:10]
-    end_time = request.GET.get('end_time')[:10]
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+    include_podcasts = request.GET.get('include_podcasts')
     streams = Stream.objects.filter(end_time__gte=start_time, end_time__lte=end_time)
     count = streams.values('track').annotate(c=Count('track')).order_by('-c')[:5]
     count_names = []
     for s in count:
         count_names.append((Track.objects.get(pk=s['track']).track_name, s['track']))
     times = streams.values('track').annotate(s=Sum('ms_played')).order_by('-s')[:5]
+    print(type(times))
     times_names = []
     for s in times:
         times_names.append((Track.objects.get(pk=s['track']).track_name, s['track']))
@@ -92,3 +97,4 @@ def most_listened(request):
     return render(request, 'spotify_stats/most_listened.html', context)
 
 # TODO: same as most_listened, but with arbitrary no of displayed streams
+
