@@ -54,6 +54,7 @@ def basic_stats(request, track_id):
     return render(request, 'spotify_stats/basic_stats.html', context)
 
 
+# TODO: validate dates - no future and no reverse
 def pick_date(request):
     if request.method == 'POST':
         form = DateForm(request.POST)
@@ -62,39 +63,38 @@ def pick_date(request):
             start = form.cleaned_data["start_date"].strftime(frmt)
             end = form.cleaned_data["end_date"].strftime(frmt)
             include_podcasts = form.cleaned_data['include_podcasts']
-            print(type(include_podcasts))
-            return HttpResponseRedirect(f'/spotify_stats/most_listened?start_time={start}&end_time={end}&include_podcasts={include_podcasts}')
+            limit = form.cleaned_data['limit']
+            order = form.cleaned_data['order']
+            print(include_podcasts)
+            print(limit)
+            url = f'/spotify_stats/most_listened?start_time={start}&end_time={end}&' \
+                + f'include_podcasts={include_podcasts}&limit={limit}&order={order}'
+            return HttpResponseRedirect(url)
     else:
         form = DateForm()
     return render(request, 'spotify_stats/pick_date.html', {'form': form})
 
 
-# TODO: add logic to exclude podcasts
-# TODO: validate dates - no future and no reverse
 # TODO: refactor
 def most_listened(request):
-    start_time = request.GET.get('start_time')
-    end_time = request.GET.get('end_time')
+    start_time = request.GET.get('start_time')[:10]
+    end_time = request.GET.get('end_time')[:10]
     include_podcasts = request.GET.get('include_podcasts')
-    streams = Stream.objects.filter(end_time__gte=start_time, end_time__lte=end_time)
-    count = streams.values('track').annotate(c=Count('track')).order_by('-c')[:5]
-    count_names = []
-    for s in count:
-        count_names.append((Track.objects.get(pk=s['track']).track_name, s['track']))
-    times = streams.values('track').annotate(s=Sum('ms_played')).order_by('-s')[:5]
-    print(type(times))
-    times_names = []
-    for s in times:
-        times_names.append((Track.objects.get(pk=s['track']).track_name, s['track']))
-    print(count_names)
-    print(times_names)
-    context = {
-        'count': count,
-        'count_names': count_names,
-        'times': times,
-        'times_names': times_names
-    }
-    return render(request, 'spotify_stats/most_listened.html', context)
-
-# TODO: same as most_listened, but with arbitrary no of displayed streams
+    podcast_filter = '' if include_podcasts == 'True' else "WHERE t.album_name IS NOT 'None'"
+    limit = request.GET.get('limit')
+    order = request.GET.get('order')
+    query = f'''
+    SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
+        (SELECT sum(ms_played) AS total_time, count(id) AS no_streams, id, track_id FROM stream
+            WHERE end_time >= "{start_time}" AND end_time < "{end_time}" GROUP BY track_id) AS s
+        JOIN track AS t ON s.track_id=t.id
+        {podcast_filter}
+        ORDER BY s.{order} DESC
+        LIMIT {limit};  
+    '''
+    streams = list(Stream.objects.raw(query))
+    for s in streams:
+        t = convert_millis(s.total_time)
+        s.total_time = f'{t[0]}:{t[1]}:{t[2]}'
+    return render(request, 'spotify_stats/most_listened.html', {'streams': streams})
 
