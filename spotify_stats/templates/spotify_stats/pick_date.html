@@ -1,5 +1,6 @@
 <form action="/spotify_stats/pick_date/" method="post">
     {% csrf_token %}
+    {{ form.non_field_errors}}
     {{ form }}
     <br>
     <input type="submit" value="Submit">

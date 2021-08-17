@@ -8,7 +8,7 @@ from django.db.models import Count, Sum
 
 from .models import Stream, Track
 from .forms import DateForm
-from .utils import convert_millis
+import utils
 
 
 def index(request):
@@ -54,7 +54,6 @@ def basic_stats(request, track_id):
     return render(request, 'spotify_stats/basic_stats.html', context)
 
 
-# TODO: validate dates - no future and no reverse
 def pick_date(request):
     if request.method == 'POST':
         form = DateForm(request.POST)
@@ -65,8 +64,6 @@ def pick_date(request):
             include_podcasts = form.cleaned_data['include_podcasts']
             limit = form.cleaned_data['limit']
             order = form.cleaned_data['order']
-            print(include_podcasts)
-            print(limit)
             url = f'/spotify_stats/most_listened?start_time={start}&end_time={end}&' \
                 + f'include_podcasts={include_podcasts}&limit={limit}&order={order}'
             return HttpResponseRedirect(url)
@@ -84,17 +81,17 @@ def most_listened(request):
     limit = request.GET.get('limit')
     order = request.GET.get('order')
     query = f'''
-    SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
-        (SELECT sum(ms_played) AS total_time, count(id) AS no_streams, id, track_id FROM stream
-            WHERE end_time >= "{start_time}" AND end_time < "{end_time}" GROUP BY track_id) AS s
-        JOIN track AS t ON s.track_id=t.id
-        {podcast_filter}
-        ORDER BY s.{order} DESC
-        LIMIT {limit};  
-    '''
+        SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
+            (SELECT sum(ms_played) AS total_time, count(id) AS no_streams, id, track_id FROM stream
+                WHERE end_time >= "{start_time}" AND end_time < "{end_time}" GROUP BY track_id) AS s
+            JOIN track AS t ON s.track_id=t.id
+            {podcast_filter}
+            ORDER BY s.{order} DESC
+            LIMIT {limit};  
+        '''
     streams = list(Stream.objects.raw(query))
     for s in streams:
-        t = convert_millis(s.total_time)
+        t = utils.milliseconds_to_hh_mm_ss(s.total_time)
         s.total_time = f'{t[0]}:{t[1]}:{t[2]}'
     return render(request, 'spotify_stats/most_listened.html', {'streams': streams})
 
