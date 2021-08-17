@@ -59,6 +59,8 @@ def pick_date(request):
     if request.method == 'POST':
         form = DateForm(request.POST)
         if form.is_valid():
+            print('start date:')
+            print(form.cleaned_data['start_date'])
             frmt = '%Y-%m-%d %H:%M'
             start = form.cleaned_data["start_date"].strftime(frmt)
             end = form.cleaned_data["end_date"].strftime(frmt)
