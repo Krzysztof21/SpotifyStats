@@ -36,3 +36,7 @@ class DateForm(forms.Form):
         if date > now:
             raise forms.ValidationError("Date must be in the past")
         return date
+
+
+def add(a, b):
+    return a+b

@@ -8,7 +8,7 @@ from django.db.models import Count, Sum
 
 from .models import Stream, Track
 from .forms import DateForm
-import utils
+from .utils import milliseconds_to_hh_mm_ss
 
 
 def index(request):
@@ -44,7 +44,7 @@ def basic_stats(request, track_id):
     week = f'{week_tuple[0]}-{week_tuple[1]}-{week_tuple[2]}'
     last_week_streams = Stream.objects.filter(track_id=track_id).filter(end_time__gte=week, end_time__lte=today).aggregate(Count('id'))
     # total time listened
-    time_tuple = convert_millis(Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))['ms_played__sum'])
+    time_tuple = milliseconds_to_hh_mm_ss(Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))['ms_played__sum'])
     total_time_listened = f'{time_tuple[0]}:{time_tuple[1]}:{time_tuple[2]}'
     context = {
         'track': track,
@@ -91,7 +91,7 @@ def most_listened(request):
         '''
     streams = list(Stream.objects.raw(query))
     for s in streams:
-        t = utils.milliseconds_to_hh_mm_ss(s.total_time)
+        t = milliseconds_to_hh_mm_ss(s.total_time)
         s.total_time = f'{t[0]}:{t[1]}:{t[2]}'
     return render(request, 'spotify_stats/most_listened.html', {'streams': streams})
 
