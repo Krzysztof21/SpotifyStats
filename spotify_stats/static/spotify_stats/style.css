@@ -1,0 +1,39 @@
+html *
+{
+   font-family: Arial !important;
+}
+
+li a {
+    color: green;
+    font-size: 30px;
+}
+
+h1 {
+    color: white;
+    font-size: 60px;
+}
+
+li {
+    color: white;
+    font-size: 30px;
+}
+
+form {
+    color: white;
+    font-size: 30px;
+}
+
+table {
+    color: white;
+    font-size: 30px;
+}
+
+a {
+    color: green;
+    font-size: 30px;
+}
+
+body {
+    background: white url("images/background.jpg") no-repeat;
+    background-size: cover;
+}

@@ -1,3 +1,7 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'spotify_stats/style.css' %}">
+
 {% if longest_streams_list %}
     <ul>
     {% for stream in longest_streams_list %}

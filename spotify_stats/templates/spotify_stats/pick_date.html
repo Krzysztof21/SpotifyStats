@@ -1,3 +1,7 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'spotify_stats/style.css' %}">
+
 <form action="/spotify_stats/pick_date/" method="post">
     {% csrf_token %}
     {{ form.non_field_errors}}

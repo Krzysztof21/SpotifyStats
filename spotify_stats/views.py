@@ -27,11 +27,6 @@ def detail(request, stream_id):
     return render(request, 'spotify_stats/detail.html', {'stream': stream, 'track': track})
 
 
-def more_detail(request, track_id):
-    response = "You're looking at the more details of track %s."
-    return HttpResponse(response % track_id)
-
-
 # TODO: refactor
 def basic_stats(request, track_id):
     track = Track.objects.filter(id=track_id).first()
@@ -80,6 +75,7 @@ def most_listened(request):
     podcast_filter = '' if include_podcasts == 'True' else "WHERE t.album_name IS NOT 'None'"
     limit = request.GET.get('limit')
     order = request.GET.get('order')
+    # noinspection SqlNoDataSourceInspection
     query = f'''
         SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
             (SELECT sum(ms_played) AS total_time, count(id) AS no_streams, id, track_id FROM stream

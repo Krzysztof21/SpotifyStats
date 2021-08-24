@@ -1,3 +1,7 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'spotify_stats/style.css' %}">
+
 <h1>{{ track.track_name }}</h1>
 <ul>
     <li>Artist: {{ track.artist_name }}</li>
