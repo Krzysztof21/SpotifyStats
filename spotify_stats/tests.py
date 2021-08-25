@@ -44,7 +44,7 @@ class TestModels:
 
     def test_existing_stream(self, client, db, stream_1):
         response = client.get(reverse('spotify_stats:detail', args=[1]))
-        response_content = str(response.content)
+        response_content = response.content.decode()
         assert response.status_code == 200
         assert "Ethnicolor - Remastered" in response_content
         assert "Jean-Michel Jarre" in response_content
@@ -54,7 +54,20 @@ class TestModels:
         response = client.get(reverse('spotify_stats:detail', args=[2]))
         assert response.status_code == 404
 
-    # TODO: maybe it should not be in this class
-    def test_wrong_url(self, client):
-        with pytest.raises(NoReverseMatch):
-            client.get(reverse('spotify_stats:detail', args=[-2]))
+
+@pytest.mark.django_db
+class TestBasicStats:
+    @pytest.fixture
+    def db_test_version(self, db):
+        track = Track.objects.create(track_name='Ethnicolor - Remastered', album_name='Zoolook', artist_name='Jean-Michel Jarre')
+        track.save()
+        data = [
+            Stream(end_time='2020-01-16 23:30', ms_played='300000', track=track),
+            Stream(end_time='2020-02-16 23:30', ms_played='300000', track=track),
+            Stream(end_time='2020-03-16 23:30', ms_played='300000', track=track),
+            Stream(end_time='2020-04-16 23:30', ms_played='300000', track=track)]
+        Stream.objects.bulk_create(data)
+
+    def test(self, db_test_version, client):
+        response = client.get(reverse('spotify_stats:basic_stats', args=[1]))
+        assert response.status_code == 200
