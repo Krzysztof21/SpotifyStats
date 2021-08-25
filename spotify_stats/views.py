@@ -1,4 +1,4 @@
-import datetime as dt
+from datetime import datetime, timedelta
 
 from django.shortcuts import render, get_object_or_404
 
@@ -27,28 +27,22 @@ def detail(request, stream_id):
     return render(request, 'spotify_stats/detail.html', {'stream': stream, 'track': track})
 
 
-# TODO: refactor
+# TODO: where to hide these functions?
 def basic_stats(request, track_id):
     track = Track.objects.filter(id=track_id).first()
-    # no of streams of this track total
-    total_streams = Stream.objects.filter(track_id=track_id).aggregate(Count('id'))
-    # no of streams of this track last week
-    today_tuple = dt.datetime.today().timetuple()
-    today = f'{today_tuple[0]}-{today_tuple[1]}-{today_tuple[2]}'
-    week_tuple = (dt.datetime.today() - dt.timedelta(days=7)).timetuple()
-    week = f'{week_tuple[0]}-{week_tuple[1]}-{week_tuple[2]}'
-    last_week_streams = Stream.objects.filter(track_id=track_id).filter(end_time__gte=week, end_time__lte=today).aggregate(Count('id'))
-    # total time listened
-    time_tuple = milliseconds_to_hh_mm_ss(Stream.objects.filter(track_id=track_id).aggregate(Sum('ms_played'))['ms_played__sum'])
-    total_time_listened = f'{time_tuple[0]}:{time_tuple[1]}:{time_tuple[2]}'
+    stats = {
+        'total_streams': get_total_streams(track_id),
+        'total_time_listened': get_total_time_listened(track_id),
+        'last_week_streams': get_number_last_week_streams(track_id)
+    }
     context = {
         'track': track,
-        'total_streams': total_streams['id__count'],
-        'total_time_listened': total_time_listened,
-        'last_week_streams': last_week_streams['id__count']}
+        'stats': stats
+    }
     return render(request, 'spotify_stats/basic_stats.html', context)
 
 
+# TODO: is this url call good practice?
 def pick_date(request):
     if request.method == 'POST':
         form = DateForm(request.POST)
@@ -91,3 +85,22 @@ def most_listened(request):
         s.total_time = f'{t[0]}:{t[1]}:{t[2]}'
     return render(request, 'spotify_stats/most_listened.html', {'streams': streams})
 
+
+def get_streams_for_track(track_id):
+    return Stream.objects.filter(track_id=track_id)
+
+
+def get_total_streams(track_id):
+    return get_streams_for_track(track_id).aggregate(Count('id'))['id__count']
+
+
+def get_total_time_listened(track_id):
+    time_tuple = milliseconds_to_hh_mm_ss(get_streams_for_track(track_id).aggregate(Sum('ms_played'))['ms_played__sum'])
+    return f'{time_tuple[0]}:{time_tuple[1]}:{time_tuple[2]}'
+
+
+def get_number_last_week_streams(track_id):
+    today = datetime.today().strftime('%Y-%m-%d %H:%M')
+    week_ago = (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M')
+    streams = get_streams_for_track(track_id).filter(end_time__gte=week_ago, end_time__lte=today)
+    return streams.aggregate(Count('id'))['id__count']
