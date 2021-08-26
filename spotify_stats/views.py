@@ -26,7 +26,6 @@ def detail(request, stream_id):
     return render(request, 'spotify_stats/detail.html', {'stream': stream, 'track': track})
 
 
-# TODO: is this url call good practice?
 def pick_date(request):
     if request.method == 'POST':
         form = DateForm(request.POST)
