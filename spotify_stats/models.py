@@ -6,6 +6,7 @@ class Track(models.Model):
     track_name = models.TextField(blank=True, null=True)
     album_name = models.TextField(blank=True, null=True)
     artist_name = models.TextField(blank=True, null=True)
+    track_length = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = True
