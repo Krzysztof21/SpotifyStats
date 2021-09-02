@@ -1,13 +1,18 @@
 {% load static %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'spotify_stats/style.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'spotify_stats/index_style.css' %}">
 
-{% if longest_streams_list %}
-    <ul>
-    {% for stream in longest_streams_list %}
-        <li><a href={% url 'spotify_stats:detail' stream.id %}>{{ stream.ms_played }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No streams are uploaded.</p>
-{% endif %}
+<head>
+  <title>Spotify statistics homepage</title>
+</head>
+<div class="header">
+  <h1>Spotify statistics app</h1>
+  <p>Homepage with useful links</p>
+</div>
+
+<ul>
+<li>Pick a date range and get your most listened tracks <a href={% url 'spotify_stats:pick_date'%}> here </a></li>
+<li>Get basic statistics by submitting a track id in the URL <a href={% url 'spotify_stats:basic_stats' 1 %}> here </a></li>
+<li>Get track details by submitting a track id in the URL <a href={% url 'spotify_stats:detail' 1 %}> here </a></li>
+<li>Get stream details by submitting a stream id in the URL <a href={% url 'spotify_stats:detail' 1 %}> here </a></li>
+</ul>
