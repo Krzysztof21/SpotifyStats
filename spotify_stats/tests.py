@@ -42,15 +42,14 @@ class TestModels:
         )
 
     def test_existing_stream(self, client, db, stream_1):
-        response = client.get(reverse('spotify_stats:detail', args=[1]))
+        response = client.get(reverse('spotify_stats:stream_detail', args=[1]))
         response_content = response.content.decode()
         assert response.status_code == 200
-        assert "Ethnicolor - Remastered" in response_content
-        assert "Jean-Michel Jarre" in response_content
+        assert "38089" in response_content
         assert "Jan. 16, 2020" in response_content
 
     def test_nonexistent_stream(self, client, db):
-        response = client.get(reverse('spotify_stats:detail', args=[2]))
+        response = client.get(reverse('spotify_stats:stream_detail', args=[2]))
         assert response.status_code == 404
 
 

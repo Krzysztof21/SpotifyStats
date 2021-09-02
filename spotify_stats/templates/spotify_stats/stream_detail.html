@@ -1,0 +1,10 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'spotify_stats/style.css' %}">
+
+<h1>{{ track.track_name }}</h1>
+<ul>
+    <li>End time: {{ stream.end_time }}</li>
+    <li>Miliseconds played: {{ stream.ms_played }}</li>
+    <li>Track ID: <a href={% url 'spotify_stats:track_detail' stream.id %}>{{ stream.track_id }}</a></li>
+</ul>

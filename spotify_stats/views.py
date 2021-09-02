@@ -3,13 +3,14 @@ from urllib.parse import urlencode
 from django.shortcuts import render, get_object_or_404, redirect, reverse
 
 from django.http import HttpResponseRedirect, Http404
-from django.views import View
+from django.views import View, generic
 
 from .models import Stream, Track
 from .forms import DateForm
 from .utils import milliseconds_to_hh_mm_ss
 
 
+# TODO: hello page with links
 def index(request):
     longest_streams_list = Stream.objects.order_by('-ms_played')[:5]
     context = {
@@ -18,12 +19,17 @@ def index(request):
     return render(request, 'spotify_stats/index.html', context)
 
 
-def detail(request, stream_id):
+def track_detail(request, stream_id):
     stream = Stream.objects.filter(id=stream_id).first()
     if stream is None:
         raise Http404("Stream with this ID does not exist")
     track = Track.objects.filter(stream__id=stream_id).first()
-    return render(request, 'spotify_stats/detail.html', {'stream': stream, 'track': track})
+    return render(request, 'spotify_stats/track_detail.html', {'stream': stream, 'track': track})
+
+
+class StreamDetailView(generic.DetailView):
+    model = Stream
+    template_name = 'spotify_stats/stream_detail.html'
 
 
 def pick_date(request):
