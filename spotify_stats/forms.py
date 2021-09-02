@@ -1,7 +1,7 @@
 import datetime as dt
 
-from django import forms
 from django.core.exceptions import ValidationError
+from django import forms
 
 
 class DateForm(forms.Form):
@@ -28,7 +28,7 @@ class DateForm(forms.Form):
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
         if end_date < start_date:
-            raise ValidationError("Start date must be earlier than end date")
+            raise forms.ValidationError("Start date must be earlier than end date")
 
     @staticmethod
     def check_date_before_present(date):

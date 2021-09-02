@@ -4,7 +4,7 @@ html *
 }
 
 li a {
-    color: green;
+    color: white;
     font-size: 30px;
 }
 
@@ -45,3 +45,6 @@ body {
   font-size: 30px;
 }
 
+ul {
+    text-align: center;
+}

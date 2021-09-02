@@ -12,11 +12,7 @@ from .utils import milliseconds_to_hh_mm_ss
 
 # TODO: hello page with links
 def index(request):
-    longest_streams_list = Stream.objects.order_by('-ms_played')[:5]
-    context = {
-        'longest_streams_list': longest_streams_list,
-    }
-    return render(request, 'spotify_stats/index.html', context)
+    return render(request, 'spotify_stats/index.html')
 
 
 def track_detail(request, stream_id):
@@ -39,7 +35,7 @@ def pick_date(request):
             base_url = reverse('spotify_stats:most_listened')
             query_string = urlencode({
                 'start_time': form.cleaned_data["start_date"].strftime('%Y-%m-%d %H:%M%z'),
-                'end_time':form.cleaned_data["end_date"].strftime('%Y-%m-%d %H:%M%z'),
+                'end_time': form.cleaned_data["end_date"].strftime('%Y-%m-%d %H:%M%z'),
                 'include_podcasts': form.cleaned_data['include_podcasts'],
                 'limit': form.cleaned_data['limit'],
                 'order': form.cleaned_data['order']})
