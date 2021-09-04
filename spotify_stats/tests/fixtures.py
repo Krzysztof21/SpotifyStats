@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from spotify_stats.models import Track, Stream
 
 
-@pytest.fixture(scope='package')
+@pytest.fixture(scope='function')
 def db_test_version(django_db_blocker):
     with django_db_blocker.unblock():
         date_last_week = (datetime.now(timezone.utc) - timedelta(days=3)).strftime('%Y-%m-%d %H:%M%z')
