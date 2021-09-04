@@ -11,12 +11,14 @@
 <table style="border-collapse: collapse; width: 100%; height: 90px;" border="1">
 <tbody>
 <tr style="height: 18px;">
-<td style="width: 33.3333%; height: 18px;"><b>Track title</b></td>
-<td style="width: 33.3333%; height: 18px;"><b>Number of streams</b></td>
-<td style="width: 33.3333%; height: 18px;"><b>Total time listened</b></td>
-    </tr>
+    <td style="width: 33.3333%; height: 18px;"><b>No.</b></td>
+    <td style="width: 33.3333%; height: 18px;"><b>Track title</b></td>
+    <td style="width: 33.3333%; height: 18px;"><b>Number of streams</b></td>
+    <td style="width: 33.3333%; height: 18px;"><b>Total time listened</b></td>
+</tr>
 {% for stream in streams %}
     <tr style="height: 18px;">
+    <td style="width: 33.3333%; height: 18px;">{{ forloop.counter }}</td>
     <td style="width: 33.3333%; height: 18px;"><a href={% url 'spotify_stats:basic_stats' stream.track_id %}>{{ stream.track_name }}</a></td>
     <td style="width: 33.3333%; height: 18px;">{{ stream.no_streams }}</td>
     <td style="width: 33.3333%; height: 18px;">{{ stream.total_time }}</td>
