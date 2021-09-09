@@ -88,3 +88,18 @@ class BasicStats(View):
             'stats': stats
         }
         return render(request, 'spotify_stats/basic_stats.html', context)
+
+
+def pie_chart(request):
+    labels = []
+    data = []
+
+    queryset = Stream.objects.all()[:5]
+    for stream in queryset:
+        labels.append(stream.track_id)
+        data.append(stream.ms_played)
+
+    return render(request, 'spotify_stats/pie_chart.html', {
+        'labels': labels,
+        'data': data,
+    })

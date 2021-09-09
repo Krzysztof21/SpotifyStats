@@ -11,4 +11,5 @@ urlpatterns = [
     path('basic_stats/<int:track_id>/', BasicStats.as_view(), name='basic_stats'),
     path('pick_date/', views.PickDateFormView.as_view(), name='pick_date'),
     path('most_listened/', views.MostListenedListView.as_view(), name='most_listened'),
+    path('pie_chart/', views.pie_chart, name='pie-chart'),
 ]
