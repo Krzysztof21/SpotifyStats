@@ -7,10 +7,32 @@ from django.http import HttpResponseRedirect
 from django.views import View, generic
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
+from django.views.generic.base import TemplateView
 
 from .models import Stream, Track
 from .forms import DateForm
 from .utils import milliseconds_to_hh_mm_ss
+
+
+class MostListenedMixin:
+
+    @staticmethod
+    def sql_query(start_time, end_time, include_podcasts, limit, order):
+        podcast_filter = '' if include_podcasts == 'True' else "WHERE t.album_name IS NOT 'None'"
+        query = f'''
+                        SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
+                            (SELECT sum(ms_played) AS total_time, count(id) AS no_streams, id, track_id FROM stream
+                                WHERE end_time >= "{start_time}" AND end_time < "{end_time}" GROUP BY track_id) AS s
+                            JOIN track AS t ON s.track_id=t.id
+                            {podcast_filter}
+                            ORDER BY s.{order} DESC
+                            LIMIT {limit};  
+                        '''
+        streams = list(Stream.objects.raw(query))
+        for s in streams:
+            t = milliseconds_to_hh_mm_ss(s.total_time)
+            s.total_time = f'{t[0]}:{t[1]}:{t[2]}'
+        return streams
 
 
 def index(request):
@@ -45,8 +67,7 @@ class PickDateFormView(FormView):
         return HttpResponseRedirect(self.get_success_url(form))
 
 
-# TODO: refactor
-class MostListenedListView(ListView):
+class MostListenedListView(MostListenedMixin, ListView):
     template_name = 'spotify_stats/most_listened.html'
     context_object_name = 'streams'
 
@@ -54,23 +75,9 @@ class MostListenedListView(ListView):
         start_time = self.request.GET['start_time'][:10]
         end_time = self.request.GET['end_time'][:10]
         include_podcasts = self.request.GET['include_podcasts']
-        podcast_filter = '' if include_podcasts == 'True' else "WHERE t.album_name IS NOT 'None'"
         limit = self.request.GET['limit']
         order = self.request.GET['order']
-        query = f'''
-                SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
-                    (SELECT sum(ms_played) AS total_time, count(id) AS no_streams, id, track_id FROM stream
-                        WHERE end_time >= "{start_time}" AND end_time < "{end_time}" GROUP BY track_id) AS s
-                    JOIN track AS t ON s.track_id=t.id
-                    {podcast_filter}
-                    ORDER BY s.{order} DESC
-                    LIMIT {limit};  
-                '''
-        streams = list(Stream.objects.raw(query))
-        for s in streams:
-            t = milliseconds_to_hh_mm_ss(s.total_time)
-            s.total_time = f'{t[0]}:{t[1]}:{t[2]}'
-        return streams
+        return super().sql_query(start_time, end_time, include_podcasts, limit, order)
 
 
 class BasicStats(View):
@@ -103,3 +110,9 @@ def pie_chart(request):
         'labels': labels,
         'data': data,
     })
+
+
+class ChartMostListenedView(MostListenedMixin, TemplateView):
+    pass
+
+
