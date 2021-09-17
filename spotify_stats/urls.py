@@ -12,4 +12,5 @@ urlpatterns = [
     path('pick_date/', views.PickDateFormView.as_view(), name='pick_date'),
     path('most_listened/', views.MostListenedListView.as_view(), name='most_listened'),
     path('pie_chart/', views.pie_chart, name='pie-chart'),
+    path('chart_most_listened/', views.ChartMostListenedView.as_view(), name='chart_most_listened'),
 ]

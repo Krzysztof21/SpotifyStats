@@ -17,7 +17,12 @@ from .utils import milliseconds_to_hh_mm_ss
 class MostListenedMixin:
 
     @staticmethod
-    def sql_query(start_time, end_time, include_podcasts, limit, order):
+    def sql_query(request):
+        start_time = request.GET['start_time'][:10]
+        end_time = request.GET['end_time'][:10]
+        include_podcasts = request.GET['include_podcasts']
+        limit = request.GET['limit']
+        order = request.GET['order']
         podcast_filter = '' if include_podcasts == 'True' else "WHERE t.album_name IS NOT 'None'"
         query = f'''
                         SELECT s.id, s.track_id, t.track_name, s.total_time, t.album_name, s.no_streams FROM
@@ -54,14 +59,18 @@ class PickDateFormView(FormView):
     form_class = DateForm
 
     def get_success_url(self, form):
-        base_url = reverse('spotify_stats:most_listened')
+        list_url = reverse('spotify_stats:most_listened')
+        chart_url = reverse('spotify_stats:chart_most_listened')
         query_string = urlencode({
             'start_time': form.cleaned_data["start_date"].strftime('%Y-%m-%d %H:%M%z'),
             'end_time': form.cleaned_data["end_date"].strftime('%Y-%m-%d %H:%M%z'),
             'include_podcasts': form.cleaned_data['include_podcasts'],
             'limit': form.cleaned_data['limit'],
             'order': form.cleaned_data['order']})
-        return '{}?{}'.format(base_url, query_string)
+        if form.cleaned_data['display'] == 'list':
+            return '{}?{}'.format(list_url, query_string)
+        else:
+            return '{}?{}'.format(chart_url, query_string)
 
     def form_valid(self, form):
         return HttpResponseRedirect(self.get_success_url(form))
@@ -72,12 +81,7 @@ class MostListenedListView(MostListenedMixin, ListView):
     context_object_name = 'streams'
 
     def get_queryset(self):
-        start_time = self.request.GET['start_time'][:10]
-        end_time = self.request.GET['end_time'][:10]
-        include_podcasts = self.request.GET['include_podcasts']
-        limit = self.request.GET['limit']
-        order = self.request.GET['order']
-        return super().sql_query(start_time, end_time, include_podcasts, limit, order)
+        return super().sql_query(self.request)
 
 
 class BasicStats(View):
@@ -113,6 +117,14 @@ def pie_chart(request):
 
 
 class ChartMostListenedView(MostListenedMixin, TemplateView):
-    pass
 
+    template_name = "spotify_stats/chart_most_listened.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        data = super().sql_query(self.request)
+        context['total_time'] = [x.total_time for x in data]
+        context['no_streams'] = [x.no_streams for x in data]
+        context['titles'] = [x.track_name for x in data]
+        return context
 

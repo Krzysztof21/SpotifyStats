@@ -5,6 +5,11 @@ from django import forms
 
 
 class DateForm(forms.Form):
+    display_choices = [
+        ('list', 'List'),
+        ('chart', 'Chart')
+    ]
+    display = forms.CharField(label='Choose display', widget=forms.Select(choices=display_choices))
     start_date = forms.DateTimeField(label='Start date')
     end_date = forms.DateTimeField(label='End date')
     include_podcasts = forms.BooleanField(widget=forms.CheckboxInput(), label='Include podcasts', required=False)
