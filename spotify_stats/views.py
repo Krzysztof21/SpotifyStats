@@ -1,4 +1,5 @@
 from urllib.parse import urlencode
+import json
 
 from django.shortcuts import render, get_object_or_404, redirect, reverse
 
@@ -123,8 +124,10 @@ class ChartMostListenedView(MostListenedMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         data = super().sql_query(self.request)
-        context['total_time'] = [x.total_time for x in data]
-        context['no_streams'] = [x.no_streams for x in data]
-        context['titles'] = [x.track_name for x in data]
+        values = dict()
+        values['total_time'] = [x.total_time for x in data]
+        values['no_streams'] = [x.no_streams for x in data]
+        values['titles'] = [x.track_name for x in data]
+        context['values'] = json.dumps(values)
         return context
 

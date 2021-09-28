@@ -1,3 +1,4 @@
+<div style="display: none" id="values" data-json="{{ values }}"></div>
 
   <div id="container" style="width: 75%;">
     <canvas id="histogram"></canvas>
@@ -6,19 +7,27 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
   <script>
 
+    function loadJson(selector) {
+        return JSON.parse(document.querySelector(selector).getAttribute('data-json'));
+        }
+    var values = loadJson('#values')
+    var totalTime = values.total_time;
+    var noStreams = values.no_streams;
+    var titles = values.titles;
+
     const ctx = document.getElementById('histogram').getContext('2d');
 
     const chart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: {{ context.titles }},
+        labels: titles,
         datasets: [{
           label: 'Total time listened',
-          data: {{ context.total_time }},
+          data: totalTime,
           backgroundColor: 'green',
         }, {
           label: 'Number of streams',
-          data: {{ context.no_streams }},
+          data: noStreams,
           backgroundColor: 'blue',
         }]
       },
